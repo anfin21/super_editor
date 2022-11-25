@@ -37,3 +37,5 @@ const strikethroughAttribution = Attribution('strikethrough');
 const codeAttribution = Attribution('code');
 
 const hashtagAttKey = 'hashtag';
+
+const tagUserAttKey = 'tagUser';

@@ -894,6 +894,13 @@ TextStyle defaultStyleBuilder(Set<Attribution> attributions) {
             ? TextDecoration.lineThrough
             : TextDecoration.combine([TextDecoration.lineThrough, newStyle.decoration!]),
       );
+    } else if(attribution.id == tagUserAttKey) {
+      return TextStyle(
+        fontWeight: FontWeight.w400,
+        color: Colors.black,
+        backgroundColor: Color(0xffEAF3FA),
+        height: 24 / 14,
+      );
     }
   }
   return newStyle;

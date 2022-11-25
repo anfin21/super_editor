@@ -38,6 +38,8 @@ extension ComputeTextSpan on AttributedText {
 
     spans.markers.removeWhere((m) => m.attribution.id == hashtagAttKey);
 
+    spans.markers.removeWhere((m) => m.attribution.id == tagUserAttKey);
+
     final matches = hashTagRegExp.allMatches(text);
     for (final match in matches) {
       spans.addAttribution(
@@ -48,13 +50,37 @@ extension ComputeTextSpan on AttributedText {
       );
     }
 
+    final tagUserMatches = tagUserRegExp.allMatches(text);
+    for (final match in tagUserMatches) {
+      spans.addAttribution(
+        newAttribution: Attribution(
+            tagUserAttKey, {tagUserAttKey: match.group(0)?.trim() ?? ''}),
+        start: match.start,
+        end: match.end - 1,
+      );
+    }
+
     final collapsedSpans = spans.collapseSpans(contentLength: text.length);
     final textSpans = collapsedSpans.map(
       (attributedSpan) {
+        final tagUserAtt = attributedSpan.attributions
+            .firstWhereOrNull((att) => att.id == tagUserAttKey);
+
+        GestureRecognizer? recognizer;
+        if (tagUserAtt != null && tagUserAtt.id == tagUserAttKey) {
+          recognizer = TapGestureRecognizer()
+            ..onTap = () => onSpanTap?.call(tagUserAtt.data[tagUserAttKey]);
+
+          return TextSpan(
+            text: text.substring(attributedSpan.start, attributedSpan.end + 1),
+            style: styleBuilder(attributedSpan.attributions),
+            recognizer: recognizer,
+          );
+        }
+
         final att = attributedSpan.attributions
             .firstWhereOrNull((att) => att.id == hashtagAttKey);
 
-        GestureRecognizer? recognizer;
         if (att != null && att.id == hashtagAttKey) {
           recognizer = TapGestureRecognizer()
             ..onTap = () => onSpanTap?.call(att.data[hashtagAttKey]);

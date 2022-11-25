@@ -41,3 +41,8 @@ final hashTagRegExp = RegExp(
   "(?!\\n)(?:^|\\s)(#([$hashTagContentLetters]+))",
   multiLine: true,
 );
+
+final tagUserRegExp = RegExp(
+  "(?!\\n)(?:^|\\s)(@([$hashTagContentLetters]+))",
+  multiLine: true,
+);
