@@ -47,7 +47,7 @@ extension ComputeTextSpan on AttributedText {
       if (tag.end <= text.length &&
           text.substring(tag.start, tag.end) == tag.name) {
         spans.addAttribution(
-          newAttribution: Attribution(tagUserAttKey, {tagUserAttKey: tag.name}),
+          newAttribution: Attribution(tagUserAttKey, {tagUserAttKey: tag.userId}),
           start: tag.start,
           end: tag.end - 1,
         );
