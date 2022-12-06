@@ -814,6 +814,7 @@ class TextComponentState extends State<TextComponent> with DocumentComponent imp
         richText: widget.text.computeTextSpan(
           _textStyleWithBlockType,
           onSpanTap: onSpanTap,
+          tagUsers: widget.tagUsers,
         ),
         textAlign: widget.textAlign ?? TextAlign.left,
         textDirection: widget.textDirection ?? TextDirection.ltr,

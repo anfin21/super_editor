@@ -11,7 +11,8 @@ import 'package:super_editor/super_editor.dart';
 /// with a span of text.
 ///
 /// The [attributions] set may be empty.
-typedef AttributionStyleBuilder = TextStyle Function(Set<Attribution> attributions);
+typedef AttributionStyleBuilder = TextStyle Function(
+    Set<Attribution> attributions);
 
 extension ToSpanRange on TextRange {
   SpanRange toSpanRange() => SpanRange(start: start, end: end);
@@ -42,13 +43,15 @@ extension ComputeTextSpan on AttributedText {
 
     spans.markers.removeWhere((m) => m.attribution.id == tagUserAttKey);
 
-    for(final tag in tagUsers) {
-      spans.addAttribution(
-        newAttribution: Attribution(
-            hashtagAttKey, {hashtagAttKey: tag.name}),
-        start: tag.start,
-        end: tag.end - 1,
-      );
+    for (final tag in tagUsers) {
+      if (tag.end <= text.length &&
+          text.substring(tag.start, tag.end) == tag.name) {
+        spans.addAttribution(
+          newAttribution: Attribution(tagUserAttKey, {tagUserAttKey: tag.name}),
+          start: tag.start,
+          end: tag.end - 1,
+        );
+      }
     }
 
     final matches = hashTagRegExp.allMatches(text);
