@@ -76,7 +76,7 @@ extension ComputeTextSpan on AttributedText {
             ..onTap = () => onSpanTap?.call(tagUserAtt.data[tagUserAttKey]);
 
           return TextSpan(
-            text: text.substring(attributedSpan.start, attributedSpan.end),
+            text: text.substring(attributedSpan.start, attributedSpan.end + 1),
             style: styleBuilder(attributedSpan.attributions),
             recognizer: recognizer,
           );
