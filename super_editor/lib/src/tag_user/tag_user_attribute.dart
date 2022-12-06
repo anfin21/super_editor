@@ -12,4 +12,14 @@ class TagUserAttribute {
     required this.end,
     required this.userId,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "node_id": nodeId,
+      "name": name,
+      "start": start,
+      "end": end,
+      "user_id": userId,
+    };
+  }
 }
