@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/regex/hashtag_regular_expression.dart';
+import 'package:super_editor/super_editor.dart';
 
 /// Creates the desired [TextStyle] given the [attributions] associated
 /// with a span of text.
@@ -25,6 +26,7 @@ extension ComputeTextSpan on AttributedText {
   TextSpan computeTextSpan(
     AttributionStyleBuilder styleBuilder, {
     void Function(String)? onSpanTap,
+    List<TagUserAttribute> tagUsers = const [],
   }) {
     attributionsLog.fine('text length: ${text.length}');
     attributionsLog.fine('attributions used to compute spans:');
@@ -40,21 +42,20 @@ extension ComputeTextSpan on AttributedText {
 
     spans.markers.removeWhere((m) => m.attribution.id == tagUserAttKey);
 
+    for(final tag in tagUsers) {
+      spans.addAttribution(
+        newAttribution: Attribution(
+            hashtagAttKey, {hashtagAttKey: tag.name}),
+        start: tag.start,
+        end: tag.end,
+      );
+    }
+
     final matches = hashTagRegExp.allMatches(text);
     for (final match in matches) {
       spans.addAttribution(
         newAttribution: Attribution(
             hashtagAttKey, {hashtagAttKey: match.group(0)?.trim() ?? ''}),
-        start: match.start,
-        end: match.end - 1,
-      );
-    }
-
-    final tagUserMatches = tagUserRegExp.allMatches(text);
-    for (final match in tagUserMatches) {
-      spans.addAttribution(
-        newAttribution: Attribution(
-            tagUserAttKey, {tagUserAttKey: match.group(0)?.trim() ?? ''}),
         start: match.start,
         end: match.end - 1,
       );
@@ -72,7 +73,7 @@ extension ComputeTextSpan on AttributedText {
             ..onTap = () => onSpanTap?.call(tagUserAtt.data[tagUserAttKey]);
 
           return TextSpan(
-            text: text.substring(attributedSpan.start, attributedSpan.end + 1),
+            text: text.substring(attributedSpan.start, attributedSpan.end),
             style: styleBuilder(attributedSpan.attributions),
             recognizer: recognizer,
           );

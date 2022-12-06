@@ -19,6 +19,7 @@ import 'package:super_editor/src/infrastructure/super_ignore_pointer.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
 import 'package:super_editor/src/infrastructure/raw_key_event_extensions.dart';
 import 'package:super_editor/src/infrastructure/strings.dart';
+import 'package:super_editor/super_editor.dart';
 import 'package:super_text_layout/super_text_layout.dart';
 
 import 'document_input_keyboard.dart';
@@ -422,6 +423,7 @@ class TextComponent extends StatefulWidget {
     this.selectionColor = Colors.lightBlueAccent,
     this.highlightWhenEmpty = false,
     this.showDebugPaint = false,
+    this.tagUsers = const [],
   }) : super(key: key);
 
   final AttributedText text;
@@ -433,6 +435,7 @@ class TextComponent extends StatefulWidget {
   final Color selectionColor;
   final bool highlightWhenEmpty;
   final bool showDebugPaint;
+  final List<TagUserAttribute> tagUsers;
 
   @override
   TextComponentState createState() => TextComponentState();

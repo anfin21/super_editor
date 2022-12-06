@@ -11,6 +11,7 @@ import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text_styles.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
 import 'package:super_editor/src/infrastructure/raw_key_event_extensions.dart';
+import 'package:super_editor/super_editor.dart';
 
 import 'document_input_keyboard.dart';
 import 'layout_single_column/layout_single_column.dart';
@@ -33,7 +34,8 @@ class ParagraphNode extends TextNode {
 }
 
 class ParagraphComponentBuilder implements ComponentBuilder {
-  const ParagraphComponentBuilder();
+  final List<TagUserAttribute> tagUsers;
+  const ParagraphComponentBuilder({this.tagUsers = const []});
 
   @override
   SingleColumnLayoutComponentViewModel? createViewModel(Document document, DocumentNode node) {
@@ -68,6 +70,7 @@ class ParagraphComponentBuilder implements ComponentBuilder {
       textDirection: textDirection,
       textAlignment: textAlign,
       selectionColor: const Color(0x00000000),
+      tagUsers: tagUsers.where((e) => e.nodeId == node.id).toList(),
     );
   }
 
@@ -102,6 +105,7 @@ class ParagraphComponentBuilder implements ComponentBuilder {
       textSelection: componentViewModel.selection,
       selectionColor: componentViewModel.selectionColor,
       highlightWhenEmpty: componentViewModel.highlightWhenEmpty,
+      tagUsers: componentViewModel.tagUsers,
     );
   }
 }
@@ -119,10 +123,12 @@ class ParagraphComponentViewModel extends SingleColumnLayoutComponentViewModel w
     this.selection,
     required this.selectionColor,
     this.highlightWhenEmpty = false,
+    this.tagUsers = const [],
   }) : super(nodeId: nodeId, maxWidth: maxWidth, padding: padding);
 
   Attribution? blockType;
   AttributedText text;
+  List<TagUserAttribute> tagUsers;
   @override
   AttributionStyleBuilder textStyleBuilder;
   @override
