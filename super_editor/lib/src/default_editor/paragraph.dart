@@ -35,17 +35,20 @@ class ParagraphNode extends TextNode {
 
 class ParagraphComponentBuilder implements ComponentBuilder {
   final List<TagUserAttribute> tagUsers;
+
   const ParagraphComponentBuilder({this.tagUsers = const []});
 
   @override
-  SingleColumnLayoutComponentViewModel? createViewModel(Document document, DocumentNode node) {
+  SingleColumnLayoutComponentViewModel? createViewModel(
+      Document document, DocumentNode node) {
     if (node is! ParagraphNode) {
       return null;
     }
 
     final textDirection = getParagraphDirection(node.text.text);
 
-    TextAlign textAlign = (textDirection == TextDirection.ltr) ? TextAlign.left : TextAlign.right;
+    TextAlign textAlign =
+        (textDirection == TextDirection.ltr) ? TextAlign.left : TextAlign.right;
     final textAlignName = node.getMetadataValue('textAlign');
     switch (textAlignName) {
       case 'left':
@@ -70,23 +73,25 @@ class ParagraphComponentBuilder implements ComponentBuilder {
       textDirection: textDirection,
       textAlignment: textAlign,
       selectionColor: const Color(0x00000000),
-      tagUsers: tagUsers.where((e) => e.nodeId == node.id).toList(),
     );
   }
 
   @override
   TextComponent? createComponent(
-      SingleColumnDocumentComponentContext componentContext, SingleColumnLayoutComponentViewModel componentViewModel) {
+      SingleColumnDocumentComponentContext componentContext,
+      SingleColumnLayoutComponentViewModel componentViewModel) {
     if (componentViewModel is! ParagraphComponentViewModel) {
       return null;
     }
 
-    editorLayoutLog.fine("Building paragraph component for node: ${componentViewModel.nodeId}");
+    editorLayoutLog.fine(
+        "Building paragraph component for node: ${componentViewModel.nodeId}");
 
     if (componentViewModel.selection != null) {
       editorLayoutLog.finer(' - painting a text selection:');
       editorLayoutLog.finer('   base: ${componentViewModel.selection!.base}');
-      editorLayoutLog.finer('   extent: ${componentViewModel.selection!.extent}');
+      editorLayoutLog
+          .finer('   extent: ${componentViewModel.selection!.extent}');
     } else {
       editorLayoutLog.finer(' - not painting any text selection');
     }
@@ -105,12 +110,14 @@ class ParagraphComponentBuilder implements ComponentBuilder {
       textSelection: componentViewModel.selection,
       selectionColor: componentViewModel.selectionColor,
       highlightWhenEmpty: componentViewModel.highlightWhenEmpty,
-      tagUsers: componentViewModel.tagUsers,
+      tagUsers:
+          tagUsers.where((e) => e.nodeId == componentViewModel.nodeId).toList(),
     );
   }
 }
 
-class ParagraphComponentViewModel extends SingleColumnLayoutComponentViewModel with TextComponentViewModel {
+class ParagraphComponentViewModel extends SingleColumnLayoutComponentViewModel
+    with TextComponentViewModel {
   ParagraphComponentViewModel({
     required String nodeId,
     double? maxWidth,
@@ -123,12 +130,10 @@ class ParagraphComponentViewModel extends SingleColumnLayoutComponentViewModel w
     this.selection,
     required this.selectionColor,
     this.highlightWhenEmpty = false,
-    this.tagUsers = const [],
   }) : super(nodeId: nodeId, maxWidth: maxWidth, padding: padding);
 
   Attribution? blockType;
   AttributedText text;
-  List<TagUserAttribute> tagUsers;
   @override
   AttributionStyleBuilder textStyleBuilder;
   @override
@@ -211,7 +216,8 @@ class CombineParagraphsCommand implements EditorCommand {
     editorDocLog.info(' - merging "$firstNodeId" <- "$secondNodeId"');
     final secondNode = document.getNodeById(secondNodeId);
     if (secondNode is! TextNode) {
-      editorDocLog.info('WARNING: Cannot merge node of type: $secondNode into node above.');
+      editorDocLog.info(
+          'WARNING: Cannot merge node of type: $secondNode into node above.');
       return;
     }
 
@@ -221,11 +227,13 @@ class CombineParagraphsCommand implements EditorCommand {
       return;
     }
     if (nodeAbove.id != firstNodeId) {
-      editorDocLog.info('The specified `firstNodeId` is not the node before `secondNodeId`.');
+      editorDocLog.info(
+          'The specified `firstNodeId` is not the node before `secondNodeId`.');
       return;
     }
     if (nodeAbove is! TextNode) {
-      editorDocLog.info('Cannot merge ParagraphNode into node of type: $nodeAbove');
+      editorDocLog
+          .info('Cannot merge ParagraphNode into node of type: $nodeAbove');
       return;
     }
 
@@ -239,7 +247,8 @@ class CombineParagraphsCommand implements EditorCommand {
     }
     bool didRemove = transaction.deleteNode(secondNode);
     if (!didRemove) {
-      editorDocLog.info('ERROR: Failed to delete the currently selected node from the document.');
+      editorDocLog.info(
+          'ERROR: Failed to delete the currently selected node from the document.');
     }
   }
 }
@@ -267,7 +276,8 @@ class SplitParagraphCommand implements EditorCommand {
 
     final node = document.getNodeById(nodeId);
     if (node is! ParagraphNode) {
-      editorDocLog.info('WARNING: Cannot split paragraph for node of type: $node.');
+      editorDocLog
+          .info('WARNING: Cannot split paragraph for node of type: $node.');
       return;
     }
 
@@ -298,7 +308,8 @@ class SplitParagraphCommand implements EditorCommand {
       newNode: newNode,
     );
 
-    editorDocLog.info(' - inserted new node: ${newNode.id} after old one: ${node.id}');
+    editorDocLog
+        .info(' - inserted new node: ${newNode.id} after old one: ${node.id}');
   }
 }
 
@@ -321,7 +332,8 @@ ExecutionInstruction anyCharacterToInsertInParagraph({
     return ExecutionInstruction.continueExecution;
   }
 
-  if (LogicalKeyboardKey.isControlCharacter(keyEvent.character!) || keyEvent.isArrowKeyPressed) {
+  if (LogicalKeyboardKey.isControlCharacter(keyEvent.character!) ||
+      keyEvent.isArrowKeyPressed) {
     return ExecutionInstruction.continueExecution;
   }
 
@@ -345,7 +357,9 @@ ExecutionInstruction anyCharacterToInsertInParagraph({
     );
   }
 
-  return didInsertCharacter ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didInsertCharacter
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 class DeleteParagraphsCommand implements EditorCommand {
@@ -367,7 +381,8 @@ class DeleteParagraphsCommand implements EditorCommand {
 
     bool didRemove = transaction.deleteNode(node);
     if (!didRemove) {
-      editorDocLog.shout('ERROR: Failed to delete node "$node" from the document.');
+      editorDocLog
+          .shout('ERROR: Failed to delete node "$node" from the document.');
     }
   }
 }
@@ -391,7 +406,8 @@ ExecutionInstruction backspaceToClearParagraphBlockType({
     return ExecutionInstruction.continueExecution;
   }
 
-  final node = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId);
+  final node = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId);
   if (node is! ParagraphNode) {
     return ExecutionInstruction.continueExecution;
   }
@@ -402,20 +418,25 @@ ExecutionInstruction backspaceToClearParagraphBlockType({
   }
 
   final didClearBlockType = editContext.commonOps.convertToParagraph();
-  return didClearBlockType ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didClearBlockType
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction enterToInsertBlockNewline({
   required EditContext editContext,
   required RawKeyEvent keyEvent,
 }) {
-  if (keyEvent.logicalKey != LogicalKeyboardKey.enter && keyEvent.logicalKey != LogicalKeyboardKey.numpadEnter) {
+  if (keyEvent.logicalKey != LogicalKeyboardKey.enter &&
+      keyEvent.logicalKey != LogicalKeyboardKey.numpadEnter) {
     return ExecutionInstruction.continueExecution;
   }
 
   final didInsertBlockNewline = editContext.commonOps.insertBlockLevelNewline();
 
-  return didInsertBlockNewline ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didInsertBlockNewline
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction moveParagraphSelectionUpWhenBackspaceIsPressed({
@@ -432,7 +453,8 @@ ExecutionInstruction moveParagraphSelectionUpWhenBackspaceIsPressed({
     return ExecutionInstruction.continueExecution;
   }
 
-  final node = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId);
+  final node = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId);
   if (node is! ParagraphNode) {
     return ExecutionInstruction.continueExecution;
   }

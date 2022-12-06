@@ -47,7 +47,7 @@ extension ComputeTextSpan on AttributedText {
         newAttribution: Attribution(
             hashtagAttKey, {hashtagAttKey: tag.name}),
         start: tag.start,
-        end: tag.end,
+        end: tag.end - 1,
       );
     }
 
