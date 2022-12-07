@@ -13,6 +13,16 @@ class TagUserAttribute {
     required this.userId,
   });
 
+  factory TagUserAttribute.fromJson(Map json) {
+    return TagUserAttribute(
+      nodeId: json["node_id"],
+      name: json["name"],
+      start: json["start"],
+      end: json["end"],
+      userId: json["user_id"],
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "node_id": nodeId,
