@@ -6,6 +6,7 @@ import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text_styles.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
+import 'package:super_editor/super_editor.dart';
 
 import '../core/document.dart';
 import '../core/document_editor.dart';
@@ -18,10 +19,13 @@ import 'text_tools.dart';
 final _log = Logger(scope: 'blockquote.dart');
 
 class BlockquoteComponentBuilder implements ComponentBuilder {
-  const BlockquoteComponentBuilder();
+  final List<TagUserAttribute> tagUsers;
+
+  const BlockquoteComponentBuilder({this.tagUsers = const []});
 
   @override
-  SingleColumnLayoutComponentViewModel? createViewModel(Document document, DocumentNode node) {
+  SingleColumnLayoutComponentViewModel? createViewModel(
+      Document document, DocumentNode node) {
     if (node is! ParagraphNode) {
       return null;
     }
@@ -31,7 +35,8 @@ class BlockquoteComponentBuilder implements ComponentBuilder {
 
     final textDirection = getParagraphDirection(node.text.text);
 
-    TextAlign textAlign = (textDirection == TextDirection.ltr) ? TextAlign.left : TextAlign.right;
+    TextAlign textAlign =
+        (textDirection == TextDirection.ltr) ? TextAlign.left : TextAlign.right;
     final textAlignName = node.getMetadataValue('textAlign');
     switch (textAlignName) {
       case 'left':
@@ -61,8 +66,8 @@ class BlockquoteComponentBuilder implements ComponentBuilder {
   }
 
   @override
-  Widget? createComponent(
-      SingleColumnDocumentComponentContext componentContext, SingleColumnLayoutComponentViewModel componentViewModel) {
+  Widget? createComponent(SingleColumnDocumentComponentContext componentContext,
+      SingleColumnLayoutComponentViewModel componentViewModel) {
     if (componentViewModel is! BlockquoteComponentViewModel) {
       return null;
     }
@@ -76,11 +81,14 @@ class BlockquoteComponentBuilder implements ComponentBuilder {
       textSelection: componentViewModel.selection,
       selectionColor: componentViewModel.selectionColor,
       highlightWhenEmpty: componentViewModel.highlightWhenEmpty,
+      tagUsers:
+          tagUsers.where((e) => e.nodeId == componentViewModel.nodeId).toList(),
     );
   }
 }
 
-class BlockquoteComponentViewModel extends SingleColumnLayoutComponentViewModel with TextComponentViewModel {
+class BlockquoteComponentViewModel extends SingleColumnLayoutComponentViewModel
+    with TextComponentViewModel {
   BlockquoteComponentViewModel({
     required String nodeId,
     double? maxWidth,
@@ -184,6 +192,7 @@ class BlockquoteComponent extends StatelessWidget {
     required this.borderRadius,
     this.showDebugPaint = false,
     this.highlightWhenEmpty = false,
+    this.tagUsers = const [],
   }) : super(key: key);
 
   final GlobalKey textKey;
@@ -195,6 +204,7 @@ class BlockquoteComponent extends StatelessWidget {
   final BorderRadius borderRadius;
   final bool highlightWhenEmpty;
   final bool showDebugPaint;
+  final List<TagUserAttribute> tagUsers;
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +223,7 @@ class BlockquoteComponent extends StatelessWidget {
           selectionColor: selectionColor,
           highlightWhenEmpty: highlightWhenEmpty,
           showDebugPaint: showDebugPaint,
+          tagUsers: tagUsers,
         ),
       ),
     );
@@ -254,8 +265,10 @@ ExecutionInstruction insertNewlineInBlockquote({
     return ExecutionInstruction.continueExecution;
   }
 
-  final baseNode = editContext.editor.document.getNodeById(editContext.composer.selection!.base.nodeId)!;
-  final extentNode = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId)!;
+  final baseNode = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.base.nodeId)!;
+  final extentNode = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId)!;
   if (baseNode.id != extentNode.id) {
     return ExecutionInstruction.continueExecution;
   }
@@ -267,7 +280,9 @@ ExecutionInstruction insertNewlineInBlockquote({
   }
 
   final didInsertNewline = editContext.commonOps.insertPlainText('\n');
-  return didInsertNewline ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didInsertNewline
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction splitBlockquoteWhenEnterPressed({
@@ -282,8 +297,10 @@ ExecutionInstruction splitBlockquoteWhenEnterPressed({
     return ExecutionInstruction.continueExecution;
   }
 
-  final baseNode = editContext.editor.document.getNodeById(editContext.composer.selection!.base.nodeId)!;
-  final extentNode = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId)!;
+  final baseNode = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.base.nodeId)!;
+  final extentNode = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId)!;
   if (baseNode.id != extentNode.id) {
     return ExecutionInstruction.continueExecution;
   }
@@ -295,7 +312,9 @@ ExecutionInstruction splitBlockquoteWhenEnterPressed({
   }
 
   final didSplit = editContext.commonOps.insertBlockLevelNewline();
-  return didSplit ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didSplit
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 class SplitBlockquoteCommand implements EditorCommand {
@@ -315,7 +334,9 @@ class SplitBlockquoteCommand implements EditorCommand {
     final blockquote = node as ParagraphNode;
     final text = blockquote.text;
     final startText = text.copyText(0, splitPosition.offset);
-    final endText = splitPosition.offset < text.text.length ? text.copyText(splitPosition.offset) : AttributedText();
+    final endText = splitPosition.offset < text.text.length
+        ? text.copyText(splitPosition.offset)
+        : AttributedText();
 
     // Change the current node's content to just the text before the caret.
     // TODO: figure out how node changes should work in terms of
@@ -328,7 +349,8 @@ class SplitBlockquoteCommand implements EditorCommand {
     final newNode = ParagraphNode(
       id: newNodeId,
       text: endText,
-      metadata: isNewNodeABlockquote ? {'blockType': blockquoteAttribution} : {},
+      metadata:
+          isNewNodeABlockquote ? {'blockType': blockquoteAttribution} : {},
     );
 
     // Insert the new node after the current node.

@@ -5,12 +5,14 @@ import 'package:flutter/painting.dart';
 import 'package:super_editor/src/default_editor/attributions.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/regex/hashtag_regular_expression.dart';
+import 'package:super_editor/super_editor.dart';
 
 /// Creates the desired [TextStyle] given the [attributions] associated
 /// with a span of text.
 ///
 /// The [attributions] set may be empty.
-typedef AttributionStyleBuilder = TextStyle Function(Set<Attribution> attributions);
+typedef AttributionStyleBuilder = TextStyle Function(
+    Set<Attribution> attributions);
 
 extension ToSpanRange on TextRange {
   SpanRange toSpanRange() => SpanRange(start: start, end: end);
@@ -25,6 +27,7 @@ extension ComputeTextSpan on AttributedText {
   TextSpan computeTextSpan(
     AttributionStyleBuilder styleBuilder, {
     void Function(String)? onSpanTap,
+    List<TagUserAttribute> tagUsers = const [],
   }) {
     attributionsLog.fine('text length: ${text.length}');
     attributionsLog.fine('attributions used to compute spans:');
@@ -40,21 +43,22 @@ extension ComputeTextSpan on AttributedText {
 
     spans.markers.removeWhere((m) => m.attribution.id == tagUserAttKey);
 
+    for (final tag in tagUsers) {
+      if (tag.end <= text.length &&
+          text.substring(tag.start, tag.end) == tag.name) {
+        spans.addAttribution(
+          newAttribution: Attribution(tagUserAttKey, {tagUserAttKey: tag.userId}),
+          start: tag.start,
+          end: tag.end - 1,
+        );
+      }
+    }
+
     final matches = hashTagRegExp.allMatches(text);
     for (final match in matches) {
       spans.addAttribution(
         newAttribution: Attribution(
             hashtagAttKey, {hashtagAttKey: match.group(0)?.trim() ?? ''}),
-        start: match.start,
-        end: match.end - 1,
-      );
-    }
-
-    final tagUserMatches = tagUserRegExp.allMatches(text);
-    for (final match in tagUserMatches) {
-      spans.addAttribution(
-        newAttribution: Attribution(
-            tagUserAttKey, {tagUserAttKey: match.group(0)?.trim() ?? ''}),
         start: match.start,
         end: match.end - 1,
       );

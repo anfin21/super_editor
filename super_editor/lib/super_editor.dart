@@ -69,3 +69,5 @@ export 'src/super_reader/reader_context.dart';
 export 'src/super_reader/super_reader.dart';
 
 export 'src/parser/parser.dart';
+
+export 'src/tag_user/tag_user_attribute.dart';

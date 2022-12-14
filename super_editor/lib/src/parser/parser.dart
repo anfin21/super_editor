@@ -18,6 +18,7 @@ extension DocumentParser on MutableDocument {
             'type': pType,
             'text': text,
             'style': style,
+            'node_id': n.id,
           });
         } else if (n is ListItemNode) {
           if (n.type == ListItemType.ordered) {
@@ -25,12 +26,14 @@ extension DocumentParser on MutableDocument {
               'type': loType,
               'text': text,
               'style': style,
+              'node_id': n.id,
             });
           } else {
             list.add({
               'type': luType,
               'text': text,
               'style': style,
+              'node_id': n.id,
             });
           }
         }
@@ -43,6 +46,7 @@ extension DocumentParser on MutableDocument {
     final nodes = <DocumentNode>[];
 
     list.forEach((l) {
+      final id = l['node_id'] ?? DocumentEditor.createNodeId();
       final type = l['type'] ?? pType;
 
       final text = l['text'] ?? '';
@@ -57,17 +61,17 @@ extension DocumentParser on MutableDocument {
 
       if (type == pType) {
         nodes.add(ParagraphNode(
-          id: DocumentEditor.createNodeId(),
+          id: id,
           text: att,
         ));
       } else if (type == loType) {
         nodes.add(ListItemNode.ordered(
-          id: DocumentEditor.createNodeId(),
+          id: id,
           text: att,
         ));
       } else if (type == luType) {
         nodes.add(ListItemNode.unordered(
-          id: DocumentEditor.createNodeId(),
+          id: id,
           text: att,
         ));
       }

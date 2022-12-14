@@ -5,6 +5,7 @@ import 'package:super_editor/src/core/edit_context.dart';
 import 'package:super_editor/src/infrastructure/_logging.dart';
 import 'package:super_editor/src/infrastructure/attributed_text_styles.dart';
 import 'package:super_editor/src/infrastructure/keyboard.dart';
+import 'package:super_editor/super_editor.dart';
 
 import '../core/document.dart';
 import '../core/document_editor.dart';
@@ -63,7 +64,9 @@ class ListItemNode extends TextNode {
   final ListItemType type;
 
   int _indent;
+
   int get indent => _indent;
+
   set indent(int newIndent) {
     if (newIndent != _indent) {
       _indent = newIndent;
@@ -73,7 +76,10 @@ class ListItemNode extends TextNode {
 
   @override
   bool hasEquivalentContent(DocumentNode other) {
-    return other is ListItemNode && type == other.type && indent == other.indent && text == other.text;
+    return other is ListItemNode &&
+        type == other.type &&
+        indent == other.indent &&
+        text == other.text;
   }
 
   @override
@@ -95,10 +101,13 @@ enum ListItemType {
 }
 
 class ListItemComponentBuilder implements ComponentBuilder {
-  const ListItemComponentBuilder();
+  final List<TagUserAttribute> tagUsers;
+
+  const ListItemComponentBuilder({this.tagUsers = const []});
 
   @override
-  SingleColumnLayoutComponentViewModel? createViewModel(Document document, DocumentNode node) {
+  SingleColumnLayoutComponentViewModel? createViewModel(
+      Document document, DocumentNode node) {
     if (node is! ListItemNode) {
       return null;
     }
@@ -130,8 +139,8 @@ class ListItemComponentBuilder implements ComponentBuilder {
   }
 
   @override
-  Widget? createComponent(
-      SingleColumnDocumentComponentContext componentContext, SingleColumnLayoutComponentViewModel componentViewModel) {
+  Widget? createComponent(SingleColumnDocumentComponentContext componentContext,
+      SingleColumnLayoutComponentViewModel componentViewModel) {
     if (componentViewModel is! ListItemComponentViewModel) {
       return null;
     }
@@ -145,6 +154,9 @@ class ListItemComponentBuilder implements ComponentBuilder {
         textSelection: componentViewModel.selection,
         selectionColor: componentViewModel.selectionColor,
         highlightWhenEmpty: componentViewModel.highlightWhenEmpty,
+        tagUsers: tagUsers
+            .where((e) => e.nodeId == componentViewModel.nodeId)
+            .toList(),
       );
     } else if (componentViewModel.type == ListItemType.ordered) {
       return OrderedListItemComponent(
@@ -156,16 +168,20 @@ class ListItemComponentBuilder implements ComponentBuilder {
         textSelection: componentViewModel.selection,
         selectionColor: componentViewModel.selectionColor,
         highlightWhenEmpty: componentViewModel.highlightWhenEmpty,
+        tagUsers: tagUsers
+            .where((e) => e.nodeId == componentViewModel.nodeId)
+            .toList(),
       );
     }
 
-    editorLayoutLog
-        .warning("Tried to build a component for a list item view model without a list item type: $componentViewModel");
+    editorLayoutLog.warning(
+        "Tried to build a component for a list item view model without a list item type: $componentViewModel");
     return null;
   }
 }
 
-class ListItemComponentViewModel extends SingleColumnLayoutComponentViewModel with TextComponentViewModel {
+class ListItemComponentViewModel extends SingleColumnLayoutComponentViewModel
+    with TextComponentViewModel {
   ListItemComponentViewModel({
     required String nodeId,
     double? maxWidth,
@@ -265,6 +281,7 @@ class UnorderedListItemComponent extends StatelessWidget {
     this.caretColor = Colors.black,
     this.highlightWhenEmpty = false,
     this.showDebugPaint = false,
+    this.tagUsers = const [],
   }) : super(key: key);
 
   final GlobalKey textKey;
@@ -279,6 +296,7 @@ class UnorderedListItemComponent extends StatelessWidget {
   final Color caretColor;
   final bool highlightWhenEmpty;
   final bool showDebugPaint;
+  final List<TagUserAttribute> tagUsers;
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +312,9 @@ class UnorderedListItemComponent extends StatelessWidget {
           width: indentSpace,
           margin: const EdgeInsets.only(top: manualVerticalAdjustment),
           decoration: BoxDecoration(
-            border: showDebugPaint ? Border.all(width: 1, color: Colors.grey) : null,
+            border: showDebugPaint
+                ? Border.all(width: 1, color: Colors.grey)
+                : null,
           ),
           child: SizedBox(
             height: lineHeight,
@@ -310,6 +330,7 @@ class UnorderedListItemComponent extends StatelessWidget {
             selectionColor: selectionColor,
             highlightWhenEmpty: highlightWhenEmpty,
             showDebugPaint: showDebugPaint,
+            tagUsers: tagUsers,
           ),
         ),
       ],
@@ -317,9 +338,11 @@ class UnorderedListItemComponent extends StatelessWidget {
   }
 }
 
-typedef UnorderedListItemDotBuilder = Widget Function(BuildContext, UnorderedListItemComponent);
+typedef UnorderedListItemDotBuilder = Widget Function(
+    BuildContext, UnorderedListItemComponent);
 
-Widget _defaultUnorderedListItemDotBuilder(BuildContext context, UnorderedListItemComponent component) {
+Widget _defaultUnorderedListItemDotBuilder(
+    BuildContext context, UnorderedListItemComponent component) {
   return Align(
     alignment: Alignment.centerRight,
     child: Container(
@@ -353,6 +376,7 @@ class OrderedListItemComponent extends StatelessWidget {
     this.caretColor = Colors.black,
     this.highlightWhenEmpty = false,
     this.showDebugPaint = false,
+    this.tagUsers = const [],
   }) : super(key: key);
 
   final GlobalKey textKey;
@@ -368,6 +392,7 @@ class OrderedListItemComponent extends StatelessWidget {
   final Color caretColor;
   final bool highlightWhenEmpty;
   final bool showDebugPaint;
+  final List<TagUserAttribute> tagUsers;
 
   @override
   Widget build(BuildContext context) {
@@ -382,7 +407,9 @@ class OrderedListItemComponent extends StatelessWidget {
           width: indentSpace,
           height: lineHeight,
           decoration: BoxDecoration(
-            border: showDebugPaint ? Border.all(width: 1, color: Colors.grey) : null,
+            border: showDebugPaint
+                ? Border.all(width: 1, color: Colors.grey)
+                : null,
           ),
           child: SizedBox(
             height: lineHeight,
@@ -398,6 +425,7 @@ class OrderedListItemComponent extends StatelessWidget {
             selectionColor: selectionColor,
             highlightWhenEmpty: highlightWhenEmpty,
             showDebugPaint: showDebugPaint,
+            tagUsers: tagUsers,
           ),
         ),
       ],
@@ -405,13 +433,15 @@ class OrderedListItemComponent extends StatelessWidget {
   }
 }
 
-typedef OrderedListItemNumeralBuilder = Widget Function(BuildContext, OrderedListItemComponent);
+typedef OrderedListItemNumeralBuilder = Widget Function(
+    BuildContext, OrderedListItemComponent);
 
 double _defaultIndentCalculator(TextStyle textStyle, int indent) {
   return 28;
 }
 
-Widget _defaultOrderedListItemNumeralBuilder(BuildContext context, OrderedListItemComponent component) {
+Widget _defaultOrderedListItemNumeralBuilder(
+    BuildContext context, OrderedListItemComponent component) {
   return OverflowBox(
     maxWidth: double.infinity,
     maxHeight: double.infinity,
@@ -443,7 +473,8 @@ class IndentListItemCommand implements EditorCommand {
     final node = document.getNodeById(nodeId);
     final listItem = node as ListItemNode;
     if (listItem.indent >= 6) {
-      _log.log('IndentListItemCommand', 'WARNING: Editor does not support an indent level beyond 6.');
+      _log.log('IndentListItemCommand',
+          'WARNING: Editor does not support an indent level beyond 6.');
       return;
     }
 
@@ -538,7 +569,8 @@ class ChangeListItemTypeCommand implements EditorCommand {
       itemType: newType,
       text: existingListItem.text,
     );
-    transaction.replaceNode(oldNode: existingListItem, newNode: newListItemNode);
+    transaction.replaceNode(
+        oldNode: existingListItem, newNode: newListItemNode);
   }
 }
 
@@ -559,13 +591,16 @@ class SplitListItemCommand implements EditorCommand {
     final listItemNode = node as ListItemNode;
     final text = listItemNode.text;
     final startText = text.copyText(0, splitPosition.offset);
-    final endText = splitPosition.offset < text.text.length ? text.copyText(splitPosition.offset) : AttributedText();
+    final endText = splitPosition.offset < text.text.length
+        ? text.copyText(splitPosition.offset)
+        : AttributedText();
     _log.log('SplitListItemCommand', 'Splitting list item:');
     _log.log('SplitListItemCommand', ' - start text: "$startText"');
     _log.log('SplitListItemCommand', ' - end text: "$endText"');
 
     // Change the current node's content to just the text before the caret.
-    _log.log('SplitListItemCommand', ' - changing the original list item text due to split');
+    _log.log('SplitListItemCommand',
+        ' - changing the original list item text due to split');
     // TODO: figure out how node changes should work in terms of
     //       a DocumentEditorTransaction (#67)
     listItemNode.text = startText;
@@ -591,7 +626,8 @@ class SplitListItemCommand implements EditorCommand {
       newNode: newNode,
     );
 
-    _log.log('SplitListItemCommand', ' - inserted new node: ${newNode.id} after old one: ${node.id}');
+    _log.log('SplitListItemCommand',
+        ' - inserted new node: ${newNode.id} after old one: ${node.id}');
   }
 }
 
@@ -608,7 +644,9 @@ ExecutionInstruction tabToIndentListItem({
 
   final wasIndented = editContext.commonOps.indentListItem();
 
-  return wasIndented ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return wasIndented
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction shiftTabToUnIndentListItem({
@@ -624,7 +662,9 @@ ExecutionInstruction shiftTabToUnIndentListItem({
 
   final wasIndented = editContext.commonOps.unindentListItem();
 
-  return wasIndented ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return wasIndented
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction backspaceToUnIndentListItem({
@@ -642,17 +682,22 @@ ExecutionInstruction backspaceToUnIndentListItem({
     return ExecutionInstruction.continueExecution;
   }
 
-  final node = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId);
+  final node = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId);
   if (node is! ListItemNode) {
     return ExecutionInstruction.continueExecution;
   }
-  if ((editContext.composer.selection!.extent.nodePosition as TextPosition).offset > 0) {
+  if ((editContext.composer.selection!.extent.nodePosition as TextPosition)
+          .offset >
+      0) {
     return ExecutionInstruction.continueExecution;
   }
 
   final wasIndented = editContext.commonOps.unindentListItem();
 
-  return wasIndented ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return wasIndented
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
 
 ExecutionInstruction splitListItemWhenEnterPressed({
@@ -663,11 +708,14 @@ ExecutionInstruction splitListItemWhenEnterPressed({
     return ExecutionInstruction.continueExecution;
   }
 
-  final node = editContext.editor.document.getNodeById(editContext.composer.selection!.extent.nodeId);
+  final node = editContext.editor.document
+      .getNodeById(editContext.composer.selection!.extent.nodeId);
   if (node is! ListItemNode) {
     return ExecutionInstruction.continueExecution;
   }
 
   final didSplitListItem = editContext.commonOps.insertBlockLevelNewline();
-  return didSplitListItem ? ExecutionInstruction.haltExecution : ExecutionInstruction.continueExecution;
+  return didSplitListItem
+      ? ExecutionInstruction.haltExecution
+      : ExecutionInstruction.continueExecution;
 }
