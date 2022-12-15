@@ -7,7 +7,6 @@ const luType = 'lu';
 extension DocumentParser on MutableDocument {
   List<Map<String, dynamic>> toJson() {
     final list = <Map<String, dynamic>>[];
-
     this.nodes.forEach((n) {
       if (n is TextNode) {
         final att = n.text;
